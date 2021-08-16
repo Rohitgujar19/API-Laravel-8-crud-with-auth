@@ -1,0 +1,21 @@
+use Validator;
+
+
+
+ function addVisitor(Request $request)
+      {
+         $rules=array(
+          'name'=>'required',
+          'email'=>'required|email',
+          'mobile'=>'required '
+          
+         );
+         $validator=Validator::make($request->all(),$rules);
+         if($validator->fails())
+         {
+            return response(['error' => $validator->errors(), 'Validation Error']);
+         }
+         
+         $visitorData=visitor::create($request->all());
+         return response()->json(['message','visitors added'],200);
+      }
