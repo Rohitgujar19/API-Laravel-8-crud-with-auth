@@ -1,0 +1,106 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\employee;
+use App\Models\visitor;
+use Validator;
+class employeeController extends Controller
+{
+    //
+    function showEmployee()
+    {
+        $employeeData=employee::all();
+        return response()->json(
+         [
+           'employeeData'=>$employeeData
+         ],200
+        );
+    }
+    function registerEmployee(Request $request)
+    {
+       $employeeData=employee::where('email',$request->email)->first();
+        if($employeeData)
+        {
+            return response()->json([
+             'message'=>"already exist"
+         ],404
+            );
+        }
+        $employeeData=employee::create($request->all());
+        return response()->json(['message','registerd successfully']);
+    }
+    function loginEmployee(Request $request)
+    {
+        $employeeData= employee::where('email',$request->email)->first();
+        if(!$employeeData ||$employeeData->password!=$request->password)
+        {
+            return response()->json(['message',"Wrong Email or password"],404);
+        }
+        $token=$employeeData->createToken('my-app-token')->plainTextToken;
+        $response=[
+         'employeeData'=>$employeeData,
+         'token'=>$token
+        ];
+        return response()->json($response,200);
+
+    }
+    function updateEmployee(Request $request,$id)
+    {
+        $employeeData=employee::find($id);
+        if(!$employeeData)
+        {
+            return response()->json(['message','not exist']);
+        }
+           $employeeupdate=$employeeData->update($request->all());
+           if($employeeupdate)
+           {
+            return response()->json($employeeData,200);
+           }
+
+    }
+    function searchByName(Request $request ,$name)
+    {
+        $employeeData=employee::where('name',$name)->get();
+        if(sizeof($employeeData)==null)
+        {
+            return response()->json(['message','not exist'],404);
+        }
+        return response()->json($employeeData,200);
+    }
+    function searchByCity(Request $request ,$city)
+    {
+        $employeeData=employee::where('city',$city)->get();
+        if(sizeof($employeeData)==null)
+        {
+            return response()->json(['message','not exist'],404);    
+             }
+             return response()->json($employeeData,200);
+
+    }
+      function deleteEmployee($id)
+      {
+        $employeeData=employee::where('id',$id)->first();
+        $employeeData->delete();
+        return response()->json(['message','data is deleted'],200);
+      }
+      function addVisitor(Request $request)
+      {
+         $rules=array(
+          'name'=>'required',
+          'email'=>'required|email',
+          'mobile'=>'required '
+          
+         );
+         $validator=Validator::make($request->all(),$rules);
+         if($validator->fails())
+         {
+            return response(['error' => $validator->errors(), 'Validation Error']);
+         }
+         
+         $visitorData=visitor::create($request->all());
+         return response()->json(['message','visitors added'],200);
+      }
+
+}
